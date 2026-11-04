@@ -1,0 +1,433 @@
+{
+  "version": 1,
+  "note": "Synthetic frozen business oracle. Not a natural-language or production-data benchmark.",
+  "cases": [
+    {
+      "name": "真实基期",
+      "tool": "list_periods",
+      "args": {},
+      "checks": {
+        "rows.0.start_year": 2020,
+        "rows.0.period_role": "base"
+      },
+      "split": "development"
+    },
+    {
+      "name": "标准矿种",
+      "tool": "list_minerals",
+      "args": {
+        "limit": 1
+      },
+      "checks": {
+        "rows.0.mineral_id": "M01",
+        "has_more": true
+      },
+      "split": "development"
+    },
+    {
+      "name": "矿山快照",
+      "tool": "compare_entities",
+      "args": {
+        "entity_kind": "mine",
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE"
+      },
+      "checks": {
+        "summary.total": 5,
+        "summary.modified": 2,
+        "summary.appeared": 1,
+        "summary.disappeared": 1,
+        "summary.unchanged": 1
+      },
+      "split": "development"
+    },
+    {
+      "name": "探矿权换证",
+      "tool": "compare_entities",
+      "args": {
+        "entity_kind": "explore_right",
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE"
+      },
+      "checks": {
+        "summary.total": 3,
+        "summary.modified": 1,
+        "summary.appeared": 1
+      },
+      "split": "development"
+    },
+    {
+      "name": "采矿权换证",
+      "tool": "compare_entities",
+      "args": {
+        "entity_kind": "mining_right",
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE"
+      },
+      "checks": {
+        "summary.modified": 1,
+        "summary.disappeared": 1
+      },
+      "split": "development"
+    },
+    {
+      "name": "关联矿种不漏矿山",
+      "tool": "compare_entities",
+      "args": {
+        "entity_kind": "mine",
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M02"
+      },
+      "checks": {
+        "summary.total": 2,
+        "summary.modified": 1,
+        "summary.unchanged": 1
+      },
+      "split": "development"
+    },
+    {
+      "name": "主矿种调整不是出现",
+      "tool": "compare_entities",
+      "args": {
+        "entity_kind": "mine",
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M01"
+      },
+      "checks": {
+        "summary.total": 5,
+        "summary.appeared": 1,
+        "summary.modified": 2
+      },
+      "split": "development"
+    },
+    {
+      "name": "页外保留全量统计",
+      "tool": "compare_entities",
+      "args": {
+        "entity_kind": "mine",
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "limit": 1,
+        "offset": 99
+      },
+      "checks": {
+        "rows": [],
+        "summary.total": 5,
+        "has_more": false
+      },
+      "split": "development"
+    },
+    {
+      "name": "保有精确差值",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M01"
+      },
+      "checks": {
+        "rows.0.delta": "25.0250",
+        "rows.0.change_percent": "25.0000"
+      },
+      "split": "development"
+    },
+    {
+      "name": "累计口径",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M01",
+        "metric": "cumulative_reserves"
+      },
+      "checks": {
+        "rows.0.delta": "10.0050"
+      },
+      "split": "development"
+    },
+    {
+      "name": "混单位不相减",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M02"
+      },
+      "checks": {
+        "rows.0.delta": null,
+        "rows.0.comparison_status": "unit_mismatch"
+      },
+      "split": "development"
+    },
+    {
+      "name": "后期缺行",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M03"
+      },
+      "checks": {
+        "rows.0.comparison_status": "missing_to_period",
+        "rows.0.delta": null
+      },
+      "split": "development"
+    },
+    {
+      "name": "前期缺行",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M04"
+      },
+      "checks": {
+        "rows.0.comparison_status": "missing_from_period",
+        "rows.0.delta": null
+      },
+      "split": "development"
+    },
+    {
+      "name": "空储量不补零",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M05"
+      },
+      "checks": {
+        "rows.0.comparison_status": "missing_value",
+        "rows.0.delta": null
+      },
+      "split": "development"
+    },
+    {
+      "name": "年度排除期次汇总",
+      "tool": "annual_output",
+      "args": {
+        "period_code": "FYP15_BASE",
+        "start_year": 2024,
+        "end_year": 2025,
+        "mineral_id": "M01"
+      },
+      "checks": {
+        "rows.0.output_total": "10.1000",
+        "rows.1.output_total": "20.2000",
+        "rows.1.stat_year": 2025
+      },
+      "split": "development"
+    },
+    {
+      "name": "缺年不是零",
+      "tool": "annual_output",
+      "args": {
+        "period_code": "FYP15_BASE",
+        "start_year": 2023,
+        "end_year": 2023,
+        "mineral_id": "M01"
+      },
+      "checks": {
+        "rows": []
+      },
+      "split": "development"
+    },
+    {
+      "name": "不接受规划期",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_PLAN",
+        "to_period": "FYP15_BASE"
+      },
+      "expect_error": true,
+      "error_contains": "invalid_parameters",
+      "split": "development"
+    },
+    {
+      "name": "缺失年份不能当基期",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "UNKNOWN_BASE",
+        "to_period": "FYP15_BASE"
+      },
+      "expect_error": true,
+      "error_contains": "invalid_parameters",
+      "split": "development"
+    },
+    {
+      "name": "任意SQL工具不存在",
+      "tool": "execute_sql",
+      "args": {
+        "sql": "DELETE FROM fact_mine"
+      },
+      "expect_error": true,
+      "split": "development"
+    },
+    {
+      "name": "不静默忽略行政区",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "admin_region": "341800"
+      },
+      "expect_error": true,
+      "error_contains": "invalid_parameters",
+      "split": "development"
+    },
+    {
+      "name": "矿种注入",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "' OR 1=1--"
+      },
+      "expect_error": true,
+      "error_contains": "invalid_parameters",
+      "split": "development"
+    },
+    {
+      "name": "拒绝无界分页",
+      "tool": "list_minerals",
+      "args": {
+        "limit": 201
+      },
+      "expect_error": true,
+      "split": "development"
+    },
+    {
+      "name": "零分母无比例",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M07"
+      },
+      "checks": {
+        "rows.0.delta": "1.0000",
+        "rows.0.change_percent": null
+      },
+      "split": "development"
+    },
+    {
+      "name": "年度非数值缺报",
+      "tool": "annual_output",
+      "args": {
+        "period_code": "FYP15_BASE",
+        "start_year": 2025,
+        "end_year": 2025,
+        "mineral_id": "M03"
+      },
+      "checks": {
+        "rows.0.output_total": null,
+        "rows.0.data_status": "missing_value"
+      },
+      "split": "development"
+    },
+    {
+      "name": "最大精度",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M06"
+      },
+      "checks": {
+        "rows.0.delta": "0.0001",
+        "rows.0.from_value": "99999999999999.9998"
+      },
+      "split": "holdout"
+    },
+    {
+      "name": "NULL单位",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M08"
+      },
+      "checks": {
+        "rows.0.comparison_status": "unknown_unit",
+        "rows.0.delta": null
+      },
+      "split": "holdout"
+    },
+    {
+      "name": "空白单位",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M09"
+      },
+      "checks": {
+        "rows.0.comparison_status": "unknown_unit",
+        "rows.0.delta": null
+      },
+      "split": "holdout"
+    },
+    {
+      "name": "两期未填",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP14_BASE",
+        "to_period": "FYP15_BASE",
+        "mineral_id": "M10"
+      },
+      "checks": {
+        "rows.0.comparison_status": "missing_value",
+        "rows.0.delta": null
+      },
+      "split": "holdout"
+    },
+    {
+      "name": "反向比较",
+      "tool": "compare_reserves",
+      "args": {
+        "from_period": "FYP15_BASE",
+        "to_period": "FYP14_BASE",
+        "mineral_id": "M01"
+      },
+      "checks": {
+        "rows.0.delta": "-25.0250",
+        "rows.0.change_percent": "-20.0000"
+      },
+      "split": "holdout"
+    },
+    {
+      "name": "年度单位缺失",
+      "tool": "annual_output",
+      "args": {
+        "period_code": "FYP15_BASE",
+        "start_year": 2025,
+        "end_year": 2025,
+        "mineral_id": "M04"
+      },
+      "checks": {
+        "rows.0.data_status": "unknown_unit",
+        "rows.0.output_total": "5.0000"
+      },
+      "split": "holdout"
+    },
+    {
+      "name": "布尔不是页数",
+      "tool": "list_minerals",
+      "args": {
+        "limit": true
+      },
+      "expect_error": true,
+      "split": "holdout"
+    },
+    {
+      "name": "年度不能省略",
+      "tool": "annual_output",
+      "args": {
+        "period_code": "FYP15_BASE"
+      },
+      "expect_error": true,
+      "split": "holdout"
+    }
+  ]
+}
