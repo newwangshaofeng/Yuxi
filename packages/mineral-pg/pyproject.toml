@@ -1,0 +1,29 @@
+[project]
+name = "yuxi-mineral-pg"
+version = "0.1.0"
+description = "矿产资源规划只读统计 MCP"
+requires-python = ">=3.12,<3.14"
+dependencies = ["mcp>=1.30,<2", "psycopg[binary]>=3.3.3", "uvicorn>=0.34.2"]
+
+[project.scripts]
+mineral-pg = "mineral_pg.server:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "httpx>=0.27", "ruff>=0.12.1", "ty>=0.0.1"]
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["integration: requires an isolated PG database"]
+
+[tool.ruff]
+line-length = 140
+lint.select = ["E", "F", "I", "UP"]

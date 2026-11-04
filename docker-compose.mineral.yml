@@ -1,0 +1,15 @@
+services:
+  mineral-pg:
+    build: ./packages/mineral-pg
+    profiles: [mineral]
+    environment:
+      MINERAL_PG_DSN: ${MINERAL_PG_DSN:?Configure a dedicated read-only mineral database DSN}
+      MINERAL_PG_TOKEN: ${MINERAL_PG_TOKEN:?Configure a random MCP bearer token}
+    ports:
+      - "127.0.0.1:8061:8061"
+    networks: [app-network]
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge

@@ -28,6 +28,7 @@ def test_preset_discovery_includes_shipping_roles():
         "default-chatbot",
         "deep-research",
         "knowledge-base-qa",
+        "mineral-planning",
     ]
     assert found["default-chatbot"].backend_id == "ChatbotAgent"
     knowledge_qa = found["knowledge-base-qa"]
@@ -35,6 +36,9 @@ def test_preset_discovery_includes_shipping_roles():
     assert knowledge_qa.backend_id == "ChatbotAgent"
     assert knowledge_qa.context["skills"] == ["knowledge-base"]
     assert knowledge_qa.context["preload_skills"] == ["knowledge-base"]
+    mineral = found["mineral-planning"]
+    assert mineral.backend_id == "ChatbotAgent"
+    assert mineral.context == {"skills": ["mining-stat-analyst"], "preload_skills": ["mining-stat-analyst"]}
 
 
 def test_new_preset_file_is_discovered_without_registry(tmp_path, monkeypatch):
@@ -225,7 +229,8 @@ async def test_reused_prepared_context_refreshes_skills_before_each_graph(monkey
 def test_shipping_skills_keep_required_dependencies():
     """默认知识能力及研究依赖不能因发现重组缺失。"""
     found = {spec["slug"]: spec for spec in skill_service.list_builtin_skill_specs()}
-    assert set(found) == {"image-gen", "deep-research", "knowledge-base", "mysql-reporter", "chat-widgets"}
+    assert set(found) == {"image-gen", "deep-research", "knowledge-base", "mysql-reporter", "chat-widgets", "mining-stat-analyst"}
+    assert found["mining-stat-analyst"]["mcp_dependencies"] == ["mineral-pg"]
     assert found["knowledge-base"]["tool_dependencies"] == []
     assert found["knowledge-base"]["mcp_dependencies"] == ["knowledge"]
     assert found["deep-research"]["skill_dependencies"] == []
