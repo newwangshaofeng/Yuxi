@@ -768,6 +768,10 @@ import { useUserStore } from '@/modules/identity'
 import { storeToRefs } from 'pinia'
 import { getMessageRunId } from '@/modules/session/model/messageDebug'
 import { MessageProcessor } from '@/modules/session/model/messageProcessor'
+import {
+  createAutoPreviewTracker,
+  pickAutoPreviewPath
+} from '@/modules/session/model/artifactPresentation'
 import dayjs, { parseToShanghai } from '@/shared/lib/time'
 import { agentApi, threadApi } from '@/apis'
 import HumanApprovalModal from '@/modules/session/ui/HumanApprovalModal.vue'
@@ -1846,6 +1850,15 @@ const messageGroupRows = computed(() => {
   }
 
   return rows
+})
+
+const autoPreviewTracker = createAutoPreviewTracker()
+
+// 自动打开本页观察到的流式运行新交付的 HTML/SVG；历史与已处理路径不再弹出。
+watch(messageGroupRows, (rows) => {
+  if (props.embedded) return
+  const path = pickAutoPreviewPath(rows, currentChatId.value, autoPreviewTracker)
+  if (path) openPanelPreview({ path, name: getPanelFileName({ path }) })
 })
 
 const isStreaming = computed(() => {

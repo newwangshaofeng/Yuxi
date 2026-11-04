@@ -26,22 +26,26 @@
           <FilePen :size="16" />
         </button>
 
-        <div v-if="isHtmlFile" class="preview-mode-switch">
+        <div v-if="hasSourceToggle" class="preview-mode-switch">
           <button
-            class="preview-mode-btn"
+            class="preview-mode-btn text-mode-btn"
             :class="{ active: htmlPreviewMode === 'render' }"
+            :aria-pressed="htmlPreviewMode === 'render'"
             @click="htmlPreviewMode = 'render'"
             title="预览"
           >
-            <Globe :size="16" />
+            <Eye :size="14" />
+            预览
           </button>
           <button
-            class="preview-mode-btn"
+            class="preview-mode-btn text-mode-btn"
             :class="{ active: htmlPreviewMode === 'source' }"
+            :aria-pressed="htmlPreviewMode === 'source'"
             @click="htmlPreviewMode = 'source'"
-            title="源码"
+            title="代码"
           >
-            <Code2 :size="16" />
+            <Code2 :size="14" />
+            代码
           </button>
         </div>
         <div
@@ -100,27 +104,31 @@
 
     <div
       v-if="
-        showInlineHtmlControls && !showHeader && isHtmlFile && !(canEdit && editMode === 'edit')
+        showInlineHtmlControls && !showHeader && hasSourceToggle && !(canEdit && editMode === 'edit')
       "
       class="preview-mode-switch inline-html-preview-switch"
     >
       <button
-        class="preview-mode-btn"
+        class="preview-mode-btn text-mode-btn"
         :class="{ active: htmlPreviewMode === 'render' }"
+        :aria-pressed="htmlPreviewMode === 'render'"
         @click="htmlPreviewMode = 'render'"
         title="预览"
       >
-        <Globe :size="16" />
+        <Eye :size="14" />
+        预览
       </button>
       <button
-        class="preview-mode-btn"
+        class="preview-mode-btn text-mode-btn"
         :class="{ active: htmlPreviewMode === 'source' }"
+        :aria-pressed="htmlPreviewMode === 'source'"
         @click="htmlPreviewMode = 'source'"
-        title="源码"
+        title="代码"
       >
-        <Code2 :size="16" />
+        <Code2 :size="14" />
+        代码
       </button>
-      <template v-if="htmlPreviewMode === 'render' && !(canEdit && editMode === 'edit')">
+      <template v-if="isHtmlFile && htmlPreviewMode === 'render' && !(canEdit && editMode === 'edit')">
         <span class="preview-mode-divider"></span>
         <button
           class="preview-mode-btn"
@@ -218,7 +226,13 @@
           {{ file?.message || '当前文件暂不支持预览，请下载后查看' }}
         </div>
       </template>
-      <template v-else-if="file?.previewType === 'image' && file?.previewUrl">
+      <template
+        v-else-if="
+          file?.previewType === 'image' &&
+          file?.previewUrl &&
+          !(isSvgFile && htmlPreviewMode === 'source')
+        "
+      >
         <div class="image-preview-wrapper">
           <img :src="file.previewUrl" :alt="filePath" class="image-preview" />
         </div>
@@ -234,6 +248,20 @@
           :title="filePath"
           sandbox="allow-scripts"
         />
+      </template>
+      <template v-else-if="hasSourceToggle && htmlPreviewMode === 'source'">
+        <div v-if="isSvgFile && svgSourceStatus === 'loading'" class="unsupported-preview loading-preview">
+          <LoaderCircle class="preview-spinner" :size="20" />
+          <span>正在加载源码...</span>
+        </div>
+        <div v-else-if="isSvgFile && svgSourceStatus === 'error'" class="unsupported-preview error-preview">
+          <CircleAlert :size="22" class="preview-error-icon" />
+          <span class="preview-error-text">加载 SVG 源码失败</span>
+        </div>
+        <pre
+          v-else
+          :class="['file-content-pre', 'code-highlight', codeThemeClass]"
+        ><code class="hljs" v-html="highlightedSourceContent"></code></pre>
       </template>
       <template v-else-if="isMarkdown">
         <MarkdownPreview
@@ -259,24 +287,28 @@
     <Teleport to="body">
       <div v-if="fullscreenPreviewVisible && file" class="fullscreen-preview-overlay">
         <div class="fullscreen-preview-actions">
-          <div v-if="isHtmlFile" class="preview-mode-switch fullscreen-preview-switch">
+          <div v-if="hasSourceToggle" class="preview-mode-switch fullscreen-preview-switch">
             <button
-              class="preview-mode-btn"
+              class="preview-mode-btn text-mode-btn"
               :class="{ active: htmlPreviewMode === 'render' }"
+              :aria-pressed="htmlPreviewMode === 'render'"
               @click="htmlPreviewMode = 'render'"
               title="预览"
             >
-              <Globe :size="16" />
+              <Eye :size="14" />
+              预览
             </button>
             <button
-              class="preview-mode-btn"
+              class="preview-mode-btn text-mode-btn"
               :class="{ active: htmlPreviewMode === 'source' }"
+              :aria-pressed="htmlPreviewMode === 'source'"
               @click="htmlPreviewMode = 'source'"
-              title="源码"
+              title="代码"
             >
-              <Code2 :size="16" />
+              <Code2 :size="14" />
+              代码
             </button>
-            <template v-if="htmlPreviewMode === 'render'">
+            <template v-if="isHtmlFile && htmlPreviewMode === 'render'">
               <span class="preview-mode-divider"></span>
               <button
                 class="preview-mode-btn"
@@ -336,7 +368,13 @@
                 {{ file?.message || '当前文件暂不支持预览，请下载后查看' }}
               </div>
             </template>
-            <template v-else-if="file?.previewType === 'image' && file?.previewUrl">
+            <template
+              v-else-if="
+                file?.previewType === 'image' &&
+                file?.previewUrl &&
+                !(isSvgFile && htmlPreviewMode === 'source')
+              "
+            >
               <div class="image-preview-wrapper fullscreen-image-preview-wrapper">
                 <img :src="file.previewUrl" :alt="filePath" class="image-preview" />
               </div>
@@ -352,6 +390,26 @@
                 :title="filePath"
                 sandbox="allow-scripts"
               />
+            </template>
+            <template v-else-if="hasSourceToggle && htmlPreviewMode === 'source'">
+              <div
+                v-if="isSvgFile && svgSourceStatus === 'loading'"
+                class="unsupported-preview loading-preview fullscreen-unsupported-preview"
+              >
+                <LoaderCircle class="preview-spinner" :size="20" />
+                <span>正在加载源码...</span>
+              </div>
+              <div
+                v-else-if="isSvgFile && svgSourceStatus === 'error'"
+                class="unsupported-preview error-preview fullscreen-unsupported-preview"
+              >
+                <CircleAlert :size="22" class="preview-error-icon" />
+                <span class="preview-error-text">加载 SVG 源码失败</span>
+              </div>
+              <pre
+                v-else
+                :class="['file-content-pre', 'code-highlight', codeThemeClass]"
+              ><code class="hljs" v-html="highlightedSourceContent"></code></pre>
             </template>
             <template v-else-if="isMarkdown">
               <MarkdownPreview
@@ -385,7 +443,7 @@ import {
   CircleAlert,
   Code2,
   Download,
-  Globe,
+  Eye,
   LoaderCircle,
   Maximize,
   PanelRight,
@@ -406,7 +464,8 @@ import {
   getCodeLanguageByPath,
   getPreviewFileExtension,
   isHtmlPreview,
-  isMarkdownPreview
+  isMarkdownPreview,
+  isSvgPreview
 } from '@/shared/lib/file_preview'
 
 const EDITABLE_EXTENSIONS = new Set(['.md', '.markdown', '.mdx', '.txt'])
@@ -529,6 +588,8 @@ const currentErrorMessage = computed(() => {
   )
 })
 const htmlPreviewMode = ref('render')
+const svgSource = ref('')
+const svgSourceStatus = ref('idle')
 const editMode = ref('preview')
 const draftContent = ref('')
 const lineWrapEnabled = ref(true)
@@ -561,6 +622,13 @@ const isHtmlFile = computed(
     typeof props.file?.content === 'string' &&
     isHtmlPreview(props.filePath)
 )
+const isSvgFile = computed(
+  () =>
+    props.file?.previewType === 'image' &&
+    Boolean(props.file?.previewUrl) &&
+    isSvgPreview(props.filePath)
+)
+const hasSourceToggle = computed(() => isHtmlFile.value || isSvgFile.value)
 const htmlPreviewSrcdoc = computed(() =>
   buildHtmlPreviewSrcdoc(props.file?.content, htmlPreviewScale.value)
 )
@@ -596,6 +664,17 @@ const formatContent = (content) => {
   if (content === undefined || content === null) return ''
   return String(content)
 }
+
+const sourceContent = computed(() =>
+  isHtmlFile.value ? formatContent(props.file?.content) : svgSource.value
+)
+const highlightedSourceContent = computed(() => {
+  try {
+    return hljs.highlight(sourceContent.value, { language: 'xml' }).value
+  } catch {
+    return escapeHtml(sourceContent.value)
+  }
+})
 
 const serializeDoctype = (doctype) => {
   if (!doctype) return ''
@@ -684,6 +763,35 @@ watch(
   }
 )
 
+watch([() => props.filePath, () => props.file?.previewUrl], () => {
+  svgSource.value = ''
+  svgSourceStatus.value = 'idle'
+})
+
+watch(
+  [htmlPreviewMode, isSvgFile, () => props.file?.previewUrl, () => props.filePath],
+  async ([mode, isSvg, previewUrl, filePath]) => {
+    if (mode !== 'source') {
+      if (svgSourceStatus.value === 'error') svgSourceStatus.value = 'idle'
+      return
+    }
+    if (!isSvg || !previewUrl || svgSourceStatus.value !== 'idle') return
+
+    svgSourceStatus.value = 'loading'
+    try {
+      const response = await fetch(previewUrl)
+      if (!response.ok) throw new Error('Failed to load SVG source')
+      const source = await response.text()
+      if (props.file?.previewUrl !== previewUrl || props.filePath !== filePath) return
+      svgSource.value = source
+      svgSourceStatus.value = 'ready'
+    } catch {
+      if (props.file?.previewUrl !== previewUrl || props.filePath !== filePath) return
+      svgSourceStatus.value = 'error'
+    }
+  }
+)
+
 watch([() => props.filePath, () => props.file?.content, canEdit], syncDraftContent, {
   immediate: true
 })
@@ -761,14 +869,14 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.modal-actions,
-.preview-mode-switch {
+.modal-actions {
   gap: 8px;
 }
 
 .preview-mode-switch {
   padding: 2px;
   border-radius: 8px;
+  gap: 4px;
   background: var(--gray-100);
 }
 
@@ -833,6 +941,7 @@ onUnmounted(() => {
   width: auto;
   min-width: 48px;
   padding: 0 8px;
+  gap: 4px;
   font-size: 12px;
 }
 
@@ -1054,6 +1163,10 @@ onUnmounted(() => {
   overflow-x: auto;
 }
 
+.agent-file-preview.is-full-height .file-content-pre.code-highlight {
+  min-height: 100%;
+}
+
 .file-content-pre.code-highlight code {
   display: block;
   white-space: pre;
@@ -1176,6 +1289,12 @@ onUnmounted(() => {
     width: 32px;
     height: 32px;
     border-radius: 999px;
+  }
+
+  .preview-mode-btn.text-mode-btn {
+    width: auto;
+    min-width: 48px;
+    padding: 0 8px;
   }
 }
 

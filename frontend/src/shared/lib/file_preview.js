@@ -144,6 +144,8 @@ export const getCodeLanguageByPath = (path) =>
 
 export const isHtmlPreview = (path) => HTML_EXTENSIONS.has(getPreviewFileExtension(path))
 
+export const isSvgPreview = (path) => getPreviewFileExtension(path) === '.svg'
+
 export const getPreviewTypeByContentType = (contentType) => {
   const normalized = String(contentType || '').toLowerCase()
   if (normalized.includes('application/pdf')) return 'pdf'
